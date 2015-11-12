@@ -1,0 +1,75 @@
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Foo</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+
+       var fetchWithConfig = function(config, elementId) {
+        return fetch('/token', config)
+          .then(function(response) {
+            return response.json();
+          })
+          .then(function(token) {
+            var myHeaders = new Headers();
+            myHeaders.append('Authorization', 'Bearer ' + token.token);
+            var init = {headers: myHeaders};
+            return fetch('/api-view', init);
+          })
+          .then(function(response) {
+            return response.json();
+          })
+          .then(function(user) {
+            document.getElementById(elementId).textContent = user.invoice;
+          });
+      }
+
+      var loadIFrame = function(url) {
+        fetch('/token')
+          .then(function(response) {
+            return response.json();
+          })
+          .then(function(token) {
+            var frag = document.createDocumentFragment();
+
+            // create wrapper div
+            var div = document.createElement('div');
+
+            // create iframe
+            var iframe = document.createElement('iframe');
+            iframe.style.border = 'none';
+            iframe.allowtransparency = true;
+            iframe.src = url + '?token=' + token.token;
+
+            // insert iframe into wrapper div
+            div.appendChild(iframe);
+
+            // insert wrapper div into document fragment
+            frag.appendChild(div);
+
+            // insert document fragment into DOM
+            document.body.appendChild(frag);
+
+          });
+      }
+
+      document.addEventListener("DOMContentLoaded", function(event) {
+        fetchWithConfig({credentials: 'include'}, 'cookie')
+          .then(function () {
+            return fetchWithConfig({}, 'etag');
+          })
+          .then(function () {
+            loadIFrame('/iframe');
+          })
+
+      });
+
+    </script>
+  </head>
+  <body>
+    VIA ETag: <span id="etag"></span><br/>
+    VIA Cookie: <span id="cookie"></span><br/>
+  </body>
+</html>
